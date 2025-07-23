@@ -10,6 +10,12 @@ const CONTRACT_OPTIONS = [
   { key: 'adv', name: 'Adversarial', address: '0x216f071653a82ced3ef9d29f3f0c0ed7829c8f81' },
 ];
 
+const DEFAULT_RPCS = [
+  "https://1rpc.io/sepolia",
+  "https://ethereum-sepolia-rpc.publicnode.com"
+];
+
+
 // Spinner
 function Spinner() {
   return (
@@ -129,7 +135,13 @@ export default function Home() {
     setResumeChoice(null);
 
     try {
-      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      const getProvider = () => {
+        // Use user input, or default to first RPC
+        const url = rpcUrl && rpcUrl.trim() !== "" ? rpcUrl : DEFAULT_RPCS[0];
+        return new ethers.JsonRpcProvider(url);
+      };
+      const provider = getProvider();
+
       const currentEpochHex = await provider.call({
         to: ROLLUP_ADDRESS,
         data: ethers.id("getCurrentEpoch()").substring(0, 10),
@@ -209,7 +221,13 @@ export default function Home() {
     let liveResults: any[] = [];
     let lastFinalizedEpoch = fromEpoch - 1;
     let lastFinalizedCum = BigInt(startCumulative || "0");
-    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const getProvider = () => {
+      // Use user input, or default to first RPC
+      const url = rpcUrl && rpcUrl.trim() !== "" ? rpcUrl : DEFAULT_RPCS[0];
+      return new ethers.JsonRpcProvider(url);
+    };
+    const provider = getProvider();
+
 
     // Optionally reset progress ONLY IF starting over from zero
     if (overwriteDB && fromEpoch === 0) {
@@ -380,13 +398,13 @@ export default function Home() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-300">RPC URL</label>
+              <label className="block text-sm font-semibold mb-2 text-gray-300">RPC URL (Optional)</label>
               <input
                 type="text"
                 value={rpcUrl}
                 onChange={(e) => setRpcUrl(e.target.value)}
                 className="w-full bg-[#191b23] text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#4285F4] border-none placeholder:text-gray-500 transition"
-                placeholder="https://..."
+                placeholder={DEFAULT_RPCS.join(", ")}
                 spellCheck={false}
               />
             </div>

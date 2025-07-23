@@ -1,7 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 import { ethers } from 'ethers';
+
+
+const CONTRACT_OPTIONS = [
+  { key: '1st', name: '1st', address: '0x8D1cc702453fa889f137DBD5734CDb7Ee96B6Ba0' },
+  { key: '2nd', name: '2nd', address: '0xee6d4e937f0493fb461f28a75cf591f1dba8704e' },
+  { key: 'adv', name: 'Adversarial', address: '0x216f071653a82ced3ef9d29f3f0c0ed7829c8f81' },
+];
 
 function Spinner() {
   return (
@@ -28,9 +35,87 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function RollupSelector({ options, value, onChange }) {
+  return (
+    <div className="w-full flex justify-center mb-6">
+      <div className="flex gap-2 w-full max-w-lg">
+        {options.map(opt => {
+          const selected = value === opt.key;
+          return (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => onChange(opt.key)}
+              className={[
+                "relative flex-1 py-2 sm:py-2.5 px-2 sm:px-3 rounded-full font-bold text-sm sm:text-base focus:outline-none transition-all duration-200",
+                selected
+                  ? "text-white shadow-lg"
+                  : "text-purple-200 hover:text-white",
+                selected
+                  ? "overflow-hidden z-10"
+                  : "",
+              ].join(' ')}
+              style={{
+                minWidth: 0,
+              }}
+            >
+              {selected && (
+                <span
+                  className="absolute inset-0 rounded-full z-0 animate-gradient-move"
+                  style={{
+                    background: "linear-gradient(90deg, #fc5c7d 0%, #ffb367 100%)",
+                    filter: "brightness(1.07)",
+                  }}
+                  aria-hidden="true"
+                />
+              )}
+              {!selected && (
+                <span
+                  className="absolute inset-0 rounded-full z-0"
+                  style={{
+                    background: "linear-gradient(90deg, #32215e 0%, #7c58c3 100%)",
+                    opacity: 0.85,
+                  }}
+                  aria-hidden="true"
+                />
+              )}
+              <span className="relative z-10">
+                {opt.name.toUpperCase()}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {/* Add the keyframes only once */}
+      <style jsx>{`
+        @keyframes gradient-move {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-move {
+          background-size: 200% 200%;
+          animation: gradient-move 2s linear infinite;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function setCookie(name, value, days = 180) {
+  const expires = new Date(Date.now() + days*24*60*60*1000).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+}
+function getCookie(name) {
+  const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+  return v ? decodeURIComponent(v[2]) : '';
+}
+
+
 export default function Home() {
-  const [proverAddress, setProverAddress] = useState('your-prover-address-here');
-  const [rpcUrl, setRpcUrl] = useState('https://your-rpc-url.com (https only)');
+  const [proverAddress, setProverAddress] = useState('');
+  const [rpcUrl, setRpcUrl] = useState('');
+  const [contractKey, setContractKey] = useState('adv');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [currentEpoch, setCurrentEpoch] = useState<number | null>(null);
@@ -38,9 +123,29 @@ export default function Home() {
   const [error, setError] = useState<string>('');
   const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
 
-  const ROLLUP_ADDRESS = "0x216f071653a82ced3ef9d29f3f0c0ed7829c8f81";
+  // Set contract dynamically
+  const ROLLUP_ADDRESS = CONTRACT_OPTIONS.find(opt => opt.key === contractKey)?.address ?? CONTRACT_OPTIONS[2].address;
+
+  const stopped = useRef(false);
+  const handleStop = () => {
+    stopped.current = true;
+  };
+
+  useEffect(() => {
+    setProverAddress(getCookie('proverAddress') || 'your-prover-address-here (0x...)');
+    setRpcUrl(getCookie('rpcUrl') || 'https://your-rpc-url.com (https only)');
+  }, []);
+
+  useEffect(() => {
+    if (proverAddress) setCookie('proverAddress', proverAddress);
+  }, [proverAddress]);
+  useEffect(() => {
+    if (rpcUrl) setCookie('rpcUrl', rpcUrl);
+  }, [rpcUrl]);
 
   const checkRewards = async () => {
+    stopped.current = false;
+
     setLoading(true);
     setError('');
     setResults([]);
@@ -99,6 +204,9 @@ export default function Home() {
         }
         setProgress({ current: i + 1, total: epoch });
         await sleep(300);
+        if (stopped.current) {
+          break;
+        }
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred');
@@ -107,12 +215,29 @@ export default function Home() {
     }
   };
 
+  // Optional: For persistence, add a backend API route and a DB (Vercel Postgres, Neon, etc.)
+  // Save last scanned epoch and rewards for each prover address+contract.
+  // On scan, start from last-saved+1 and append, or allow user to resume.
+
   return (
     <div className="min-h-screen bg-gradient-to-tr from-[#181A20] via-[#232532] to-[#1a1c22] py-12 px-4 sm:px-8 dark">
       <div className="max-w-3xl mx-auto">
         <div className="bg-[#22242B] rounded-2xl shadow-xl shadow-black/40 border border-[#23242d] p-10 mb-8">
           <h1 className="text-4xl font-extrabold mb-2 text-white tracking-tight">Prover Rewards Checker</h1>
           <p className="text-lg text-gray-400 mb-6">Monitor your rollup prover rewards in real time.</p>
+          
+          {/* Contract Selector */}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold mb-2 text-gray-300">Rollup Contract</label>
+            <div className="flex gap-4 flex-wrap">
+              <RollupSelector
+                options={CONTRACT_OPTIONS}
+                value={contractKey}
+                onChange={setContractKey}
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
               <label className="block text-sm font-semibold mb-2 text-gray-300">Prover Address</label>
@@ -132,7 +257,7 @@ export default function Home() {
                 value={rpcUrl}
                 onChange={(e) => setRpcUrl(e.target.value)}
                 className="w-full bg-[#191b23] text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#4285F4] border-none placeholder:text-gray-500 transition"
-                placeholder="http://..."
+                placeholder="https://..."
                 spellCheck={false}
               />
             </div>
@@ -151,6 +276,14 @@ export default function Home() {
               </span>
             )}
           </button>
+          {loading && (
+            <button
+              onClick={handleStop}
+              className="w-full mt-2 py-2 rounded-xl font-semibold bg-gradient-to-tr from-red-500 to-pink-500 hover:brightness-110 text-white shadow-md shadow-black/20 transition-all"
+            >
+              Stop Scanning
+            </button>
+          )}
         </div>
 
         {error && (

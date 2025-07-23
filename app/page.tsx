@@ -30,7 +30,7 @@ function sleep(ms) {
 
 export default function Home() {
   const [proverAddress, setProverAddress] = useState('your-prover-address-here');
-  const [rpcUrl, setRpcUrl] = useState('http://your-rpc-url.com:8545');
+  const [rpcUrl, setRpcUrl] = useState('https://your-rpc-url.com:8545 (https only)');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [currentEpoch, setCurrentEpoch] = useState<number | null>(null);

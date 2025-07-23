@@ -1,5 +1,6 @@
 'use client';
 
+import { Analytics } from '@vercel/analytics/next';
 import { useEffect, useRef, useState } from "react";
 import { ethers } from 'ethers';
 
@@ -543,6 +544,7 @@ export default function Home() {
           </div>
         )}
       </div>
+      <Analytics />
     </div>
   );
 }

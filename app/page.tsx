@@ -286,7 +286,7 @@ export default function Home() {
       setProgress({ current: i + 1, total: toEpoch });
       lastFinalizedEpoch = i;
       lastFinalizedCum = cum;
-      await sleep(200);
+      await sleep(500);
     }
     setLoading(false);
 

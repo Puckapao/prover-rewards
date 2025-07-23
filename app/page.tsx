@@ -90,7 +90,7 @@ export default function Home() {
 
   useEffect(() => {
     setProverAddress(getCookie('proverAddress') || 'your-prover-address-here (0x...)');
-    setRpcUrl(getCookie('rpcUrl') || 'https://your-rpc-url.com (https only)');
+    setRpcUrl(getCookie('rpcUrl'));
   }, []);
   useEffect(() => { if (proverAddress) setCookie('proverAddress', proverAddress); }, [proverAddress]);
   useEffect(() => { if (rpcUrl) setCookie('rpcUrl', rpcUrl); }, [rpcUrl]);

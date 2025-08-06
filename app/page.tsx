@@ -79,7 +79,7 @@ async function fetchEpochReward(provider: any, rollup: string, prover: string, e
   }
 }
 
-export async function fetchSharesFor(
+async function fetchSharesFor(
   provider: ethers.Provider,
   rollup: string,
   prover: string,

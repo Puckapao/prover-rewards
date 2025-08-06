@@ -39,6 +39,15 @@ function getCookie(name: string) {
   return v ? decodeURIComponent(v[2]) : '';
 }
 
+function formatBigIntWithCommas(str: string | number | bigint) {
+  try {
+    return BigInt(str).toLocaleString();
+  } catch {
+    return str?.toString() ?? '';
+  }
+}
+
+
 // Helper to get one epoch reward and cumulative
 async function fetchEpochReward(provider: any, rollup: string, prover: string, epoch: number, startCum: bigint) {
   try {
@@ -70,7 +79,26 @@ async function fetchEpochReward(provider: any, rollup: string, prover: string, e
   }
 }
 
+export async function fetchSharesFor(
+  provider: ethers.Provider,
+  rollup: string,
+  prover: string,
+): Promise<{ shares: string; sharesNum: bigint }> {
+  const callData = ethers.concat([
+    ethers.id("getSharesFor(address)").substring(0, 10),
+    ethers.zeroPadValue(prover, 32),
+  ]);
+
+  const sharesHex = await provider.call({ to: rollup, data: callData });
+  const sharesNum = BigInt(sharesHex);
+  return {
+    shares:    sharesNum.toString(),
+    sharesNum,
+  };
+}
+
 export default function Home() {
+  const [shares, setShares] = useState<string | null>(null);
   const [proverAddress, setProverAddress] = useState('');
   const [rpcUrl, setRpcUrl] = useState('');
   const [contractKey, setContractKey] = useState('adv');
@@ -142,6 +170,15 @@ export default function Home() {
         return new ethers.JsonRpcProvider(url);
       };
       const provider = getProvider();
+
+      // Fetch shares for prover
+      try {
+        const { shares } = await fetchSharesFor(provider, ROLLUP_ADDRESS, proverAddress);
+        setShares(shares);
+      } catch {
+        setShares(null);
+      }
+
 
       const currentEpochHex = await provider.call({
         to: ROLLUP_ADDRESS,
@@ -481,6 +518,11 @@ export default function Home() {
               <span className="mt-2 text-[#F5B74E] text-sm">
                 * Only finalized epochs count toward the total. The latest epoch is still pending and may decrease if more provers submit.
               </span>
+              {shares !== null && (
+                <span className="mt-2 text-[#F5B74E] text-base font-mono">
+                  <strong>Current Shares:</strong> {formatBigIntWithCommas(shares)}
+                </span>
+              )}
             </div>
             <h2 className="text-2xl font-bold mb-6 text-white">Rewards by Epoch</h2>
             <div className="overflow-x-auto rounded-xl">

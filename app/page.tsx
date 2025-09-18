@@ -102,7 +102,7 @@ export default function Home() {
   const [shares, setShares] = useState<string | null>(null);
   const [proverAddress, setProverAddress] = useState('');
   const [rpcUrl, setRpcUrl] = useState('');
-  const [contractKey, setContractKey] = useState('adv');
+  const [contractKey, setContractKey] = useState('testnet');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [currentEpoch, setCurrentEpoch] = useState<number | null>(null);

@@ -9,6 +9,7 @@ const CONTRACT_OPTIONS = [
   { key: '1st', name: '1st', address: '0x8D1cc702453fa889f137DBD5734CDb7Ee96B6Ba0' },
   { key: '2nd', name: '2nd', address: '0xee6d4e937f0493fb461f28a75cf591f1dba8704e' },
   { key: 'adv', name: 'Adversarial', address: '0x216f071653a82ced3ef9d29f3f0c0ed7829c8f81' },
+  { key: 'testnet', name: 'Testnet', address: '0x29fa27e173f058d0f5f618f5abad2757747f673f'},
 ];
 
 const DEFAULT_RPCS = [

@@ -381,7 +381,7 @@ export default function Home() {
             <label className="block text-sm font-semibold mb-2 text-gray-300">Rollup Contract</label>
             <div className="flex gap-4 flex-wrap">
               <div className="w-full flex justify-center mb-6">
-                <div className="flex gap-2 w-full max-w-lg">
+                <div className="flex gap-2 w-full">
                   {CONTRACT_OPTIONS.map((opt) => {
                     const selected = contractKey === opt.key;
                     return (

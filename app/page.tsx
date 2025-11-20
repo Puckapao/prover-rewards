@@ -194,7 +194,7 @@ export default function Home() {
       });
       const latestEpoch = parseInt(currentEpochHex, 16);
       setCurrentEpoch(latestEpoch);
-      setProgress({ current: 0, total: latestEpoch });
+      setProgress({ current: 235, total: latestEpoch });
 
       // Get DB progress
       const { lastEpoch, cumulativeRewards } = await getProgress(proverAddress, ROLLUP_ADDRESS);
@@ -204,7 +204,7 @@ export default function Home() {
       if (lastEpoch >= lastFinalizedEpoch) {
         setResults([
           {
-            epoch: `0–${lastEpoch}`,
+            epoch: `235–${lastEpoch}`,
             rewards: '-',
             rewardsSTK: '-',
             cumulativeSTK: parseFloat(ethers.formatEther(BigInt(cumulativeRewards))).toFixed(6),
@@ -230,7 +230,7 @@ export default function Home() {
       if (lastEpoch >= 0 && lastEpoch < lastFinalizedEpoch) {
         setResults([
           {
-            epoch: `0–${lastEpoch}`,
+            epoch: `235–${lastEpoch}`,
             rewards: '-',
             rewardsSTK: '-',
             cumulativeSTK: parseFloat(ethers.formatEther(BigInt(cumulativeRewards))).toFixed(6),
@@ -244,8 +244,8 @@ export default function Home() {
         return;
       }
 
-      // No progress, scan all
-      await scanRewards(0, latestEpoch, "0", true);
+      // No progress, scan all starting from epoch 235
+      await scanRewards(235, latestEpoch, "0", true);
       setResumeData(null);
     } catch (err: any) {
       setError(err.message || 'An error occurred');
@@ -275,9 +275,9 @@ export default function Home() {
     const provider = getProvider();
 
 
-    // Optionally reset progress ONLY IF starting over from zero
-    if (overwriteDB && fromEpoch === 0) {
-      await saveProgress(proverAddress, ROLLUP_ADDRESS, -1, "0");
+    // Optionally reset progress ONLY IF starting over from epoch 235
+    if (overwriteDB && fromEpoch === 235) {
+      await saveProgress(proverAddress, ROLLUP_ADDRESS, 234, "0");
     }
 
     // // Show prior summary row if resuming
@@ -295,10 +295,10 @@ export default function Home() {
     //   lastFinalizedCum = prevCum;
     // }
 
-    if (fromEpoch > 0) {
+    if (fromEpoch > 235) {
       // Only create a summary row, no RPC calls!
       liveResults = [{
-        epoch: `0–${fromEpoch-1}`,
+        epoch: `235–${fromEpoch-1}`,
         rewards: '-',
         rewardsSTK: '-',
         cumulativeSTK: parseFloat(ethers.formatEther(BigInt(startCumulative))).toFixed(6),
@@ -366,7 +366,7 @@ export default function Home() {
     if (!resumeChoice || !resumeData) return;
     (async () => {
       if (resumeChoice === "restart") {
-        await scanRewards(0, resumeData.latestEpoch, "0", true);
+        await scanRewards(235, resumeData.latestEpoch, "0", true);
       } else {
         await scanRewards(resumeData.lastEpoch + 1, resumeData.latestEpoch, resumeData.cumulative, false);
       }
@@ -518,10 +518,13 @@ export default function Home() {
                 Total Cumulative Rewards <span className="text-sm text-[#F5B74E]">*</span>:
               </span>
               <span className="text-2xl font-mono text-[#4285F4]">
-                {parseFloat(finalizedTotal).toFixed(6)} STK
+                {parseFloat(finalizedTotal).toFixed(6)} AZTEC
                 {pendingReward && pendingReward !== "0.000000" && (
-                  <span className="text-[#F5B74E] text-xl font-mono"> (+{pendingReward} STK)</span>
+                  <span className="text-[#F5B74E] text-xl font-mono"> (+{pendingReward} AZTEC)</span>
                 )}
+              </span>
+              <span className="text-lg font-mono text-green-400 mt-1">
+                ≈ ${((parseFloat(finalizedTotal) + (pendingReward && pendingReward !== "0.000000" ? parseFloat(pendingReward) : 0)) * 0.035).toFixed(2)} USD
               </span>
               <span className="mt-2 text-[#F5B74E] text-sm">
                 * Only finalized epochs count toward the total. The latest epoch is still pending and may decrease if more provers submit.
@@ -538,8 +541,8 @@ export default function Home() {
                 <thead>
                   <tr className="bg-gradient-to-r from-[#7F56D9] to-[#4285F4] text-white">
                     <th className="px-6 py-4 text-left rounded-tl-xl">Epoch</th>
-                    <th className="px-6 py-4 text-right">Rewards (STK)</th>
-                    <th className="px-6 py-4 text-right">Cumulative (STK)</th>
+                    <th className="px-6 py-4 text-right">Rewards (AZTEC))</th>
+                    <th className="px-6 py-4 text-right">Cumulative (AZTEC)</th>
                     <th className="px-6 py-4 text-center rounded-tr-xl">Status</th>
                   </tr>
                 </thead>

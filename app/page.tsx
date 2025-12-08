@@ -173,7 +173,7 @@ async function getUserTransactionHistory(provider: any, address: string, startBl
   }
 
   console.log(`🎯 Found total ${transactions.length} Submit Epoch Root Proof transactions`);
-  return [...new Set(transactions)]; // Remove duplicates
+  return Array.from(new Set(transactions)); // Remove duplicates
 }
 
 // Helper to fetch user transactions to rollup contract and calculate gas costs

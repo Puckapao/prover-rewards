@@ -229,8 +229,8 @@ async function fetchUserGasCosts(provider: any, rollup: string, prover: string, 
         console.log(`📅 Transaction timestamp: ${block.timestamp}, calculated epoch: ${epoch}`);
 
         if (epoch !== null && epoch >= 235) {
-          const gasUsed = receipt.gasUsed;
-          const gasPrice = tx.gasPrice || BigInt(0);
+          const gasUsed = BigInt(receipt.gasUsed);
+          const gasPrice = BigInt(tx.gasPrice || 0);
           const gasCostWei = gasUsed * gasPrice;
           const gasCostETH = parseFloat(ethers.formatEther(gasCostWei));
 
@@ -243,9 +243,9 @@ async function fetchUserGasCosts(provider: any, rollup: string, prover: string, 
           }
 
           gasCostsByEpoch[epoch].gasUsed = gasCostsByEpoch[epoch].gasUsed + gasUsed;
-          gasCostsByEpoch[epoch].gasCostETH = ethers.formatEther(
-            ethers.parseEther(gasCostsByEpoch[epoch].gasCostETH) + gasCostWei
-          );
+          const currentETH = BigInt(ethers.parseEther(gasCostsByEpoch[epoch].gasCostETH));
+          const newETH = currentETH + gasCostWei;
+          gasCostsByEpoch[epoch].gasCostETH = ethers.formatEther(newETH);
           gasCostsByEpoch[epoch].gasCostUSD = (
             parseFloat(gasCostsByEpoch[epoch].gasCostUSD) + gasCostUSD
           ).toFixed(2);
